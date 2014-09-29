@@ -1,4 +1,4 @@
 Gamers.js
 =========
 
-Gamers.js is an ecosystem allowing browser games developers.
+Gamers.js is an ecosystem for browser games developers.
