@@ -1,7 +1,36 @@
-@(message: String)
-
-@main("Welcome to Play") {
-
-    @play20.welcome(message)
-
-}
+<!DOCTYPE html>
+<html ng-app="App">
+	<head>
+		<meta charset="utf-8">
+		<title>Gamers</title>
+		<meta name="author" content="Sacha Bron (Binary Brain)">
+		<link rel="stylesheet/less" type="text/css" href='@routes.Assets.at("less/style.less")'>
+		<script src='@routes.Assets.at("js/lib/angular.min.js")'></script>
+		<script src='@routes.Assets.at("js/lib/moment.min.js")'></script>
+		<script src='@routes.Assets.at("js/lib/angular-moment.min.js")'></script>
+		<script src='@routes.Assets.at("js/lib/less-1.7.5.min.js")'></script>
+		<script src='@routes.Assets.at("js/index.js")'></script>
+</head>
+<body>
+	<div id="people" ng-controller="peopleCtrl">
+		<h3>People</h3>
+		<ul id="world">
+			<li class="buddy" ng-repeat="p in people">
+				<div class="name" ng-click="newChat(p)">{{ p.name }}</div>
+			</li>
+		</ul>
+	</div>
+	<div id="chat-bar" ng-controller="chatCtrl">
+		<div ng-repeat="room in chats" class="chat">
+			<div class="close" ng-click="close(room)"></div>
+			<div class="header">{{ room.participants | removeMe | listNames }}</div>
+			<div class="messages">
+				<div class="message" ng-repeat="m in room.messages" ng-class="{ you: me.id === m.from }">
+					[<span am-time-ago="m.time"></span>] {{ m.content }}
+				</div>
+			</div>
+			<form ng-submit="sendMessage(room, newMessages[room.id])"><input type="text" ng-model="newMessages[room.id]"></form>
+		</div>
+	</div>
+</body>
+</html>
