@@ -1,0 +1,19 @@
+{
+	"data": [
+		{
+			"name": "TAFL",
+			"description": "An ancien game.\nIt was so cool!",
+			"image": "???",
+			"teams": "2",
+			"players": "2",
+			"bot": true,
+		},
+		{
+			"name": "Slime the flag",
+			"description": "A capture the flag (CTF) with some slime!",
+			"image": "???",
+			"teams": "2-4",
+			"bot": false,
+		}
+	]
+}

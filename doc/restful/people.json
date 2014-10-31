@@ -1,0 +1,52 @@
+{
+	"friends": {
+		// How to handle multiple services?
+		// For example, if I'm friend with Daroud on Twitter, FB and G+
+		"twitter": [
+			{
+				"id": 123353,
+				"nickname": "Tellendil",
+				"service-name": "@Tellendil",
+				"image": "???",
+			},
+			{
+				"id": 123984,
+				"nickname": "Flagoul",
+				"service-name": "@Flag0ul",
+				"image": "???",
+			}
+		],
+		"facebook": [
+			{
+				"id": 123984,
+				"nickname": "Flagoul",
+				"service-name": "Basile Vu",
+				"image": "???"
+			}
+		]
+	},
+	"world": [
+
+	]
+}
+
+{
+	"friends": [
+		{
+			"id": 123984,
+			"nickname": "Flagoul",
+			"image": "???",
+			"facebook": {
+				"name": "Basile Vu",
+				"id": 123542136
+			},
+			"twitter": {
+				"name": "@Flag0ul",
+				"id": 3294623
+			}
+		}
+	],
+	"world": [
+
+	]
+}
