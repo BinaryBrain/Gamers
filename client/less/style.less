@@ -24,10 +24,6 @@
 @peopleWidth: 200px;
 @notifsWidth: @peopleWidth;
 
-@chatHeight: 200px;
-@chatWidth: 200px;
-@chatMargin: 20px;
-
 @popoverBG: @lighterGrey;
 @popoverWidth: @frameWidth+100;
 
@@ -320,6 +316,13 @@ h1#bigTitle {
   }
 }
 
+@chatHeight: 200px;
+@chatWidth: 300px;
+@chatMargin: 20px;
+@chatHeaderHeight: 23px;
+@chatFormHeight: 16px;
+@chatRowPaddingHeight: 4px;
+
 #chat-bar {
   position: absolute;
   bottom: 0;
@@ -338,23 +341,44 @@ h1#bigTitle {
     float: right;
 
     .header, .message, input {
-      padding: 4px 8px;
+      padding: @chatRowPaddingHeight 8px;
     }
 
     .header {
+      height: @chatHeaderHeight;
       background: @lightGrey;
+      overflow: hidden;
     }
 
+    .messages {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+
+      top: @chatHeaderHeight+@chatRowPaddingHeight*2;
+      bottom: @chatFormHeight+@chatRowPaddingHeight*2;
+      
+      overflow-y: auto;
+
+      .message {
+        &.you {
+          text-align: right;
+        }
+      }
+    }
+    
     input {
       position: absolute;
 
       left: 0;
       bottom: 0;
       width: 100%;
+      height: @chatHeaderHeight;
 
       box-sizing: border-box;
     }
-
   }
 }
 
