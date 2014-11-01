@@ -2,7 +2,7 @@ var websocket = new WebSocket(document.location.origin.replace(/^http/, "ws") + 
 
 websocket.onopen = function (event) {
 	console.log("WebSocket open")
-	websocket.send("Hello World!");
+	websocket.send('{ "cmd": "get-people" }');
 }
 
 websocket.onmessage = function (event) {
