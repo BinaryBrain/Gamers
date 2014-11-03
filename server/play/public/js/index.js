@@ -14,11 +14,7 @@ App.controller('mainCtrl', [function () {}]);
 App.controller('peopleCtrl', ['$scope', '$rootScope', 'wsFactory', function ($scope, $rootScope, wsFactory) {
 	wsFactory.
 		then(function (ws) {
-			ws.send('{ "cmd": "get-people" }').
-				then(function (content) {
-					console.log("recieved people:", content)
-					$rootScope.people = content;
-				});
+			ws.send('{ "cmd": "get-people" }');
 		});
 
 	// dummy data
@@ -64,11 +60,7 @@ App.controller('chatCtrl', function ($scope, $rootScope, wsFactory) {
 
 	wsFactory.
 		then(function (ws) {
-			ws.send('{ "cmd": "get-chats" }').
-				then(function (content) {
-					console.log("recieved chats:", content)
-					$rootScope.chats = content;
-				});
+			ws.send('{ "cmd": "get-chats" }');
 		});
 });
 
@@ -98,7 +90,7 @@ App.filter('removeMe', function($rootScope) {
 	};
 });
 
-App.factory('wsFactory', function ($q) {
+App.factory('wsFactory', function ($q, $rootScope) {
 	return $q(function (resolve, reject) {
 		var ws = new WebSocket(document.location.origin.replace(/^http/, "ws") + "/ws");
 
@@ -107,13 +99,28 @@ App.factory('wsFactory', function ($q) {
 			resolve(ws);
 		}
 
-		/*
-				ws.onmessage = function (event) {
-					var data = angular.fromJson(event.data);
-					
-					// console.warn("Unhandled message recieved:", data)
-				}
-		*/
+		ws.onmessage = function (event) {
+			var data = angular.fromJson(event.data);
+			
+			switch (data.cmd) {
+				case 'people-update':
+					$rootScope.$apply(function () {
+						$rootScope.people = data.content;
+					});
+					break;
+
+				case 'chats-update':
+					$rootScope.$apply(function () {
+						$rootScope.chats = data.content;
+					});
+					break;
+				
+				default:
+					console.warn("Unhandled message recieved:", data);
+					break;
+			}
+		}
+
 		ws.onclose = function (event) {
 			// TODO handle me!
 			console.warn("WebSocket closed:", event);
@@ -122,21 +129,6 @@ App.factory('wsFactory', function ($q) {
 		ws.onerror = function (event) {
 			// TODO handle me!
 			console.error("WebSocket error:", event);
-		}
-
-		ws._send = ws.send;
-
-		ws.send = function (data) {
-			console.log("Request", data)
-			return $q(function (resolve, reject) {
-				ws.onmessage = function (event) {
-					console.log("Response", event)
-					var data = angular.fromJson(event.data);
-					resolve(data.content);
-				}
-
-				ws._send(data);
-			});
 		}
 	});
 })
