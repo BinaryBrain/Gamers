@@ -9,4 +9,7 @@ GET     /                           controllers.Application.index
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 # WebSocket
-GET   /socket                       controllers.Application.websocket
+GET		/ws                         controllers.Application.ws
+
+# RESTful API
+GET		/api                        controllers.Application.rest

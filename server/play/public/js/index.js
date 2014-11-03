@@ -9,56 +9,33 @@ window.onerror = function (errorMsg, url, lineNumber, columnNumber, errorObject)
 	}
 }
 
-App.controller('peopleCtrl', function ($scope, $rootScope) {
+App.controller('mainCtrl', [function () {}]);
+
+App.controller('peopleCtrl', ['$scope', '$rootScope', 'wsFactory', function ($scope, $rootScope, wsFactory) {
+	wsFactory.
+		then(function (ws) {
+			ws.send('{ "cmd": "get-people" }').
+				then(function (data) {
+					console.log(data)
+				});
+		});
+
 	// dummy data
 	$rootScope.me = {
 		id: 42,
 		name: "Binary Brain"
 	}
 
-	$scope.people = [
-		{
-			id: 1,
-			name: "Jean-Jean"
-		},
-		{
-			id: 2,
-			name: "xXx Dark sombre xXx"
-		},
-		{
-			id: 3,
-			name: "Tabi Nah"
-		},
-		{
-			id: 4,
-			name: "SuperMool"
-		},
-		{
-			id: 5,
-			name: "Jayce"
-		},
-		{
-			id: 7,
-			name: "Pascal"
-		},
-		{
-			id: 14,
-			name: "octopus82"
-		},
-		{
-			id: 18,
-			name: "Slalutrin"
-		},
-		{
-			id: 13,
-			name: "YuGuiYooo13"
-		},
-	];
+	$scope.$watch(function () {
+		return data.people;
+	}, function () {
+		$scope.people = data.people;
+	}, true)
 
 	$scope.newChat = function (participant) {
 		$rootScope.$broadcast('newChat', [ participant, $rootScope.me ]);
 	}
-});
+}]);
 
 App.controller('chatCtrl', function ($scope, $rootScope) {
 	$scope.newMessages = [];
@@ -161,3 +138,43 @@ App.filter('removeMe', function($rootScope) {
 		return people;
 	};
 });
+
+App.factory('wsFactory', function ($q) {
+	return $q(function (resolve, reject) {
+		var ws = new WebSocket(document.location.origin.replace(/^http/, "ws") + "/ws");
+
+		ws.onopen = function (event) {
+			console.log("WebSocket open");
+			resolve(ws);
+		}
+
+		ws.onmessage = function (event) {
+			var data = angular.fromJson(event.data);
+			console.log("message recieved", data)
+
+			if(data.cmd === 'people-update') {
+				//$rootScope.$apply(function () {
+				//	$rootScope.people = data.people
+				//})
+			}
+		}
+
+		ws.onclose = function (event) {
+			// TODO handle me!
+		}
+
+		ws.onerror = function (event) {
+			// TODO handle me!
+		}
+
+		ws._send = ws.send;
+
+		ws.send = function (data) {
+			return $q(function (resolve, reject) {
+				ws._send(data);
+				// TODO Get response from onmessage
+				resolve("Here is your response!"+data);
+			});
+		}
+	});
+})

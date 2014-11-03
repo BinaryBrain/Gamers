@@ -9,10 +9,11 @@
 		<script src='@routes.Assets.at("js/lib/moment.min.js")'></script>
 		<script src='@routes.Assets.at("js/lib/angular-moment.min.js")'></script>
 		<script src='@routes.Assets.at("js/lib/less-1.7.5.min.js")'></script>
-		<script src='@routes.Assets.at("js/index.js")'></script>
+		<script src='@routes.Assets.at("js/data.js")'></script>
 		<script src='@routes.Assets.at("js/websocket.js")'></script>
+		<script src='@routes.Assets.at("js/index.js")'></script>
 </head>
-<body>
+<body ng-controller="mainCtrl">
 	<div id="people" ng-controller="peopleCtrl">
 		<h3>People</h3>
 		<ul id="world">

@@ -13,10 +13,12 @@ object Application extends Controller {
     Ok(views.html.index())
   }
 
-  def websocket = WebSocket.acceptWithActor[JsValue, JsValue] { request =>
+  def ws = WebSocket.acceptWithActor[JsValue, JsValue] { request =>
     out =>
       MyWebSocketActor.props(out)
   }
+  
+  def rest = TODO
 }
 
 object MyWebSocketActor {
@@ -37,7 +39,7 @@ class MyWebSocketActor(out: ActorRef) extends Actor {
     
     cmd match {
       case "get-people" =>
-        Json.obj("people" -> Json.parse("""
+        Json.obj("cmd" -> "people-update", "people" -> Json.parse("""
         [
           {
             "id": 1,
@@ -77,6 +79,8 @@ class MyWebSocketActor(out: ActorRef) extends Actor {
           }
         ]
         """))
+        
+      case _ => Json.obj("error" -> s"Unknown command $cmd")
     }
   }
 }
