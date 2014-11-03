@@ -16,6 +16,7 @@ App.controller('peopleCtrl', ['$scope', '$rootScope', 'wsFactory', function ($sc
 		then(function (ws) {
 			ws.send('{ "cmd": "get-people" }').
 				then(function (content) {
+					console.log("recieved people:", content)
 					$rootScope.people = content;
 				});
 		});
@@ -31,7 +32,7 @@ App.controller('peopleCtrl', ['$scope', '$rootScope', 'wsFactory', function ($sc
 	}
 }]);
 
-App.controller('chatCtrl', function ($scope, $rootScope) {
+App.controller('chatCtrl', function ($scope, $rootScope, wsFactory) {
 	$scope.newMessages = [];
 
 	$rootScope.$on('newChat', function (event, participants) {
@@ -61,50 +62,14 @@ App.controller('chatCtrl', function ($scope, $rootScope) {
 		}
 	}
 
-	// dummy data
-	$scope.chats = [
-		{
-			id: 1,
-			participants: [
-				{
-					id: 1,
-					name: "Jean-Jean"
-				},
-				{
-					id: 2,
-					name: "xXx Dark sombre xXx"
-				},
-				{
-					id: 3,
-					name: "Tabi Nah"
-				},
-				$rootScope.me
-			],
-			messages: [
-				{ time: new Date("2014-10-19T17:09:22.695Z"), from: 1, type: "text", content: "Salut!" },
-				{ time: new Date("2014-10-20T17:15:21.687Z"), from: 2, type: "text", content: "yop" },
-				{ time: new Date("2014-10-20T17:15:36.725Z"), from: 42, type: "text", content: "pouldre" },
-				{ time: new Date("2014-10-20T17:15:52.695Z"), from: 3, type: "text", content: "fnu" },
-				{ time: new Date("2014-10-20T17:15:57.687Z"), from: 2, type: "text", content: "ça roule?" },
-				{ time: new Date("2014-10-19T17:16:22.695Z"), from: 1, type: "text", content: "Voui!" },
-				{ time: new Date("2014-10-20T17:16:58.725Z"), from: 42, type: "text", content: "yep" },
-			]
-		},
-		{
-			id: 3,
-			participants: [
-				{
-					id: 18,
-					name: "Slalutrin"
-				},
-				$rootScope.me
-			],
-			messages: [
-				{ time: new Date("2014-10-21T14:35:04.850Z"), from: 14, type: "text", content: "pouldre" },
-				{ time: new Date("2014-10-21T14:35:14.750Z"), from: 42, type: "text", content: "fnu" }
-			]
-		}
-	]
+	wsFactory.
+		then(function (ws) {
+			ws.send('{ "cmd": "get-chats" }').
+				then(function (content) {
+					console.log("recieved chats:", content)
+					$rootScope.chats = content;
+				});
+		});
 });
 
 App.filter('listNames', function() {
@@ -142,24 +107,30 @@ App.factory('wsFactory', function ($q) {
 			resolve(ws);
 		}
 
-		ws.onmessage = function (event) {
-			var data = angular.fromJson(event.data);
-			console.warn("Unhandled message recieved:", data)
-		}
-
+		/*
+				ws.onmessage = function (event) {
+					var data = angular.fromJson(event.data);
+					
+					// console.warn("Unhandled message recieved:", data)
+				}
+		*/
 		ws.onclose = function (event) {
 			// TODO handle me!
+			console.warn("WebSocket closed:", event);
 		}
 
 		ws.onerror = function (event) {
 			// TODO handle me!
+			console.error("WebSocket error:", event);
 		}
 
 		ws._send = ws.send;
 
 		ws.send = function (data) {
-			return $q(function (resolve, reject) {		
+			console.log("Request", data)
+			return $q(function (resolve, reject) {
 				ws.onmessage = function (event) {
+					console.log("Response", event)
 					var data = angular.fromJson(event.data);
 					resolve(data.content);
 				}
