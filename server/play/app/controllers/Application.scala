@@ -39,7 +39,7 @@ class MyWebSocketActor(out: ActorRef) extends Actor {
     
     cmd match {
       case "get-people" =>
-        Json.obj("cmd" -> "people-update", "people" -> Json.parse("""
+        Json.obj("cmd" -> "people-update", "content" -> Json.parse("""
         [
           {
             "id": 1,

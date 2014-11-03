@@ -15,8 +15,8 @@ App.controller('peopleCtrl', ['$scope', '$rootScope', 'wsFactory', function ($sc
 	wsFactory.
 		then(function (ws) {
 			ws.send('{ "cmd": "get-people" }').
-				then(function (data) {
-					console.log(data)
+				then(function (content) {
+					$rootScope.people = content;
 				});
 		});
 
@@ -25,12 +25,6 @@ App.controller('peopleCtrl', ['$scope', '$rootScope', 'wsFactory', function ($sc
 		id: 42,
 		name: "Binary Brain"
 	}
-
-	$scope.$watch(function () {
-		return data.people;
-	}, function () {
-		$scope.people = data.people;
-	}, true)
 
 	$scope.newChat = function (participant) {
 		$rootScope.$broadcast('newChat', [ participant, $rootScope.me ]);
@@ -150,13 +144,7 @@ App.factory('wsFactory', function ($q) {
 
 		ws.onmessage = function (event) {
 			var data = angular.fromJson(event.data);
-			console.log("message recieved", data)
-
-			if(data.cmd === 'people-update') {
-				//$rootScope.$apply(function () {
-				//	$rootScope.people = data.people
-				//})
-			}
+			console.warn("Unhandled message recieved:", data)
 		}
 
 		ws.onclose = function (event) {
@@ -170,10 +158,13 @@ App.factory('wsFactory', function ($q) {
 		ws._send = ws.send;
 
 		ws.send = function (data) {
-			return $q(function (resolve, reject) {
+			return $q(function (resolve, reject) {		
+				ws.onmessage = function (event) {
+					var data = angular.fromJson(event.data);
+					resolve(data.content);
+				}
+
 				ws._send(data);
-				// TODO Get response from onmessage
-				resolve("Here is your response!"+data);
 			});
 		}
 	});
