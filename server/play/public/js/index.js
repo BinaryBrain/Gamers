@@ -9,13 +9,10 @@ window.onerror = function (errorMsg, url, lineNumber, columnNumber, errorObject)
 	}
 }
 
-App.controller('mainCtrl', [function () {}]);
-
 App.controller('peopleCtrl', ['$scope', '$rootScope', 'wsFactory', function ($scope, $rootScope, wsFactory) {
-	wsFactory.
-		then(function (ws) {
-			ws.send('{ "cmd": "get-people" }');
-		});
+	wsFactory.then(function (ws) {
+		ws.send('{ "cmd": "get-people" }');
+	});
 
 	// dummy data
 	$rootScope.me = {
@@ -28,11 +25,15 @@ App.controller('peopleCtrl', ['$scope', '$rootScope', 'wsFactory', function ($sc
 	}
 }]);
 
-App.controller('chatCtrl', function ($scope, $rootScope, wsFactory) {
+App.controller('chatCtrl', function ($scope, $rootScope, $anchorScroll, $timeout, wsFactory) {
 	$scope.newMessages = [];
 
+	if (typeof $rootScope.chat === 'undefined') {
+		$rootScope.chat = [];
+	}
+
 	$rootScope.$on('newChat', function (event, participants) {
-		$scope.chats.push({
+		$rootScope.chat.push({
 			id: Math.round(Math.random() * 10000), // TODO real ids without possible collision
 			participants: participants,
 			messages: []
@@ -40,28 +41,43 @@ App.controller('chatCtrl', function ($scope, $rootScope, wsFactory) {
 	})
 
 	$scope.sendMessage = function (room, message) {
-		room.messages.push({
+		var newMessage = {
 			from: $rootScope.me.id,
 			time: new Date(),
 			type: "text",
 			content: message
+		}
+
+		room.messages.push(newMessage);
+
+		wsFactory.then(function (ws) {
+			ws.send(angular.toJson({ cmd: 'new-message', content: newMessage }));
 		});
 
 		$scope.newMessages[room.id] = "";
 	}
 
 	$scope.close = function (room) {
-		for (var i in $scope.chats) {
-			if ($scope.chats[i].id === room.id) {
-				$scope.chats.splice(i, 1);
+		for (var i in $rootScope.chat) {
+			if ($rootScope.chat[i].id === room.id) {
+				$rootScope.chat.splice(i, 1);
 			}
 		}
 	}
 
-	wsFactory.
-		then(function (ws) {
-			ws.send('{ "cmd": "get-chats" }');
+	$scope.$watch('chat', function () {
+		$timeout(function () {
+			var msgDivs = document.getElementsByClassName("messages");
+			
+			for (var i = 0, l = msgDivs.length; i < l; i++) {
+				msgDivs[i].scrollTop = msgDivs[i].scrollHeight;
+			}
 		});
+	}, true)
+
+	wsFactory.then(function (ws) {
+		ws.send('{ "cmd": "get-chat" }');
+	});
 });
 
 App.filter('listNames', function() {
@@ -109,12 +125,12 @@ App.factory('wsFactory', function ($q, $rootScope) {
 					});
 					break;
 
-				case 'chats-update':
+				case 'chat-update':
 					$rootScope.$apply(function () {
-						$rootScope.chats = data.content;
+						$rootScope.chat = data.content;
 					});
 					break;
-				
+
 				default:
 					console.warn("Unhandled message recieved:", data);
 					break;

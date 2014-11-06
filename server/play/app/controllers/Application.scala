@@ -38,8 +38,8 @@ class MyWebSocketActor(out: ActorRef) extends Actor {
     val cmd = (msg \ "cmd").as[String]
     
     cmd match {
-      case "get-chats" =>
-        Json.obj("cmd" -> "chats-update", "content" -> Json.parse("""
+      case "get-chat" =>
+        Json.obj("cmd" -> "chat-update", "content" -> Json.parse("""
         [
           {
             "id":1,
@@ -177,7 +177,11 @@ class MyWebSocketActor(out: ActorRef) extends Actor {
         ]
         """))
         
-      case _ => Json.obj("error" -> s"Unknown command $cmd")
+        case "new-message" =>
+          
+          Json.obj("cmd" -> "message-sent")
+      
+      case _ => Json.obj("error" -> s"Unknown command '$cmd'")
     }
   }
 }
