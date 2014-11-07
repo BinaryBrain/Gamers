@@ -8,6 +8,8 @@ import play.api.Play.current
 import play.api.libs.json.JsObject
 import play.api.libs.json.Json
 
+import models._
+
 object Application extends Controller {
   def index = Action {
     Ok(views.html.index())

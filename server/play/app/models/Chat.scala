@@ -1,51 +1,51 @@
 package models
 
 import scala.collection.mutable.ArraySeq
-import java.util.Date
 import play.api.libs.json._
 import play.api.db.slick.Config.driver.simple._
 import play.api.Play.current
+import java.sql.Date
 
-case class Room(id: Int, name: String) {
-  
-}
+case class Room(id: Int) {}
+case class Message(id: Int, roomId: Int, senderId: Int, `type`: Int, content: String, date: Date) {}
+case class ChatParticipant(roomId: Int, personId: Int) {}
 
 class Chat(tag: Tag) extends Table[Room](tag, "chat") {
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
-  def name = column[String]("name")
   
-  def * = (id, name) <> (Room.tupled, Room.unapply)
+  def * = (id) <> (Room, Room.unapply)
 }
 
-object Chat extends TableQuery(new Chat(_)) {
-  def notifyCreate(answer: Person): Unit = {
-  }
+class Messages(tag: Tag) extends Table[Message](tag, "messages") {
+  val rooms = TableQuery[Chat]
+  val people = TableQuery[People]
 
-  def notifyUpdate(answer: Person): Unit = {
-  }
-
-  def notifyDelete(user: Int, event: Int): Unit = {
-  }
+  def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
+  def roomId = column[Int]("room")
+  def senderId = column[Int]("sender")
+  def `type` = column[Int]("type")
+  def content = column[String]("content")
+  def date = column[Date]("date")
+  
+  def room = foreignKey("room_fk", roomId, rooms)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
+  def sender = foreignKey("person_fk", senderId, people)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.SetNull)
+  
+  def * = (id, roomId, senderId, `type`, content, date) <> (Message.tupled, Message.unapply)
 }
 
-/*
-object Chat {
-  val rooms = new ArraySeq[Room](0)
+class ChatParticipants(tag: Tag) extends Table[ChatParticipant](tag, "chat_participants") {
+  val rooms = TableQuery[Chat]
+  val people = TableQuery[People]
   
-  class Room {
-    val messages = new ArraySeq[Message](0)
-  }
+  def roomId = column[Int]("room", O.PrimaryKey)
+  def personId = column[Int]("sender", O.PrimaryKey)
   
-  class Message {
-    val time: Date
-    val from: Person
-    val content: String
-    
-    implicit val implicitMessageWrites = new Writes[Message] {
-      def writes(message: Message): JsValue = {
-          Json.obj("time" -> time, "from" -> from, "content" -> content)
-      }
-    }
-  }
+  def room = foreignKey("room_fk", roomId, rooms)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
+  def person = foreignKey("person_fk", personId, people)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.SetNull)
+  
+  def * = (roomId, personId) <> (ChatParticipant.tupled, ChatParticipant.unapply)
 }
-*/
+
+object Chat extends TableQuery(new Chat(_)) {}
+object Messages extends TableQuery(new Messages(_)) {}
+object ChatParticipants extends TableQuery(new ChatParticipants(_)) {}
