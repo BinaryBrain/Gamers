@@ -180,7 +180,7 @@ class MyWebSocketActor(out: ActorRef) extends Actor {
         """))
         
         case "new-message" =>
-          
+          //People.insert(User("fredrik","ekholdt"))
           Json.obj("cmd" -> "message-sent")
       
       case _ => Json.obj("error" -> s"Unknown command '$cmd'")
