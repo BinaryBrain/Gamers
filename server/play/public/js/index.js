@@ -50,6 +50,8 @@ App.controller('chatCtrl', function ($scope, $rootScope, $anchorScroll, $timeout
 
 		room.messages.push(newMessage);
 
+		newMessage.room = room.participants.map(function (p) { return p.id }).sort().join(',');
+
 		wsFactory.then(function (ws) {
 			ws.send(angular.toJson({ cmd: 'new-message', content: newMessage }));
 		});
@@ -94,7 +96,7 @@ App.filter('listNames', function() {
 
 App.filter('removeMe', function($rootScope) {
 	return function(people) {
-		people = people || [];
+		people = people.slice(0) || [];
 		
 		for (var i in people) {
 			if (people[i].id === $rootScope.me.id) {

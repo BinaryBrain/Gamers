@@ -3,23 +3,23 @@
 
 # --- !Ups
 
+create table `chat_messages` (`id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,`room_id` INTEGER NOT NULL,`sender_id` INTEGER NOT NULL,`type` INTEGER NOT NULL,`content` VARCHAR(254) NOT NULL,`date` DATE NOT NULL);
 create table `chat_participants` (`room_id` INTEGER NOT NULL,`person_id` INTEGER NOT NULL);
-create table `chat` (`id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY);
-create table `messages` (`id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,`room_id` INTEGER NOT NULL,`sender_id` INTEGER NOT NULL,`type` INTEGER NOT NULL,`content` VARCHAR(254) NOT NULL,`date` DATE NOT NULL);
-create table `people` (`id` INTEGER NOT NULL PRIMARY KEY,`name` VARCHAR(254) NOT NULL);
-alter table `chat_participants` add constraint `person_fk` foreign key(`person_id`) references `people`(`id`) on update CASCADE on delete SET NULL;
-alter table `chat_participants` add constraint `room_fk` foreign key(`room_id`) references `chat`(`id`) on update CASCADE on delete CASCADE;
-alter table `messages` add constraint `person_fk` foreign key(`sender_id`) references `people`(`id`) on update CASCADE on delete SET NULL;
-alter table `messages` add constraint `room_fk` foreign key(`room_id`) references `chat`(`id`) on update CASCADE on delete NO ACTION;
+create table `chat_rooms` (`id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,`participants` VARCHAR(254) NOT NULL);
+create table `people` (`id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,`name` VARCHAR(254) NOT NULL);
+alter table `chat_messages` add constraint `message_person_fk` foreign key(`sender_id`) references `people`(`id`) on update CASCADE on delete CASCADE;
+alter table `chat_messages` add constraint `message_room_fk` foreign key(`room_id`) references `chat_rooms`(`id`) on update CASCADE on delete CASCADE;
+alter table `chat_participants` add constraint `chatparticipants_person_fk` foreign key(`person_id`) references `people`(`id`) on update CASCADE on delete CASCADE;
+alter table `chat_participants` add constraint `chatparticipants_room_fk` foreign key(`room_id`) references `chat_rooms`(`id`) on update CASCADE on delete CASCADE;
 
 # --- !Downs
 
-ALTER TABLE messages DROP FOREIGN KEY person_fk;
-ALTER TABLE messages DROP FOREIGN KEY room_fk;
-ALTER TABLE chat_participants DROP FOREIGN KEY person_fk;
-ALTER TABLE chat_participants DROP FOREIGN KEY room_fk;
+ALTER TABLE chat_participants DROP FOREIGN KEY chatparticipants_person_fk;
+ALTER TABLE chat_participants DROP FOREIGN KEY chatparticipants_room_fk;
+ALTER TABLE chat_messages DROP FOREIGN KEY message_person_fk;
+ALTER TABLE chat_messages DROP FOREIGN KEY message_room_fk;
 drop table `people`;
-drop table `messages`;
-drop table `chat`;
+drop table `chat_rooms`;
 drop table `chat_participants`;
+drop table `chat_messages`;
 

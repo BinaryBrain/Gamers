@@ -1,5 +1,7 @@
 package controllers
 
+import java.sql.Date
+
 import play.api._
 import play.api.mvc._
 import play.api.libs.json.JsValue
@@ -7,8 +9,12 @@ import akka.actor._
 import play.api.Play.current
 import play.api.libs.json.JsObject
 import play.api.libs.json.Json
+import models._
+import play.api.db.slick.Config.driver.simple._
 
 import models._
+
+import scala.slick.lifted.TableQuery
 
 object Application extends Controller {
   def index = Action {
@@ -29,11 +35,10 @@ object MyWebSocketActor {
 
 class MyWebSocketActor(out: ActorRef) extends Actor {
   def receive = {
-    case msg: JsValue => {
+    case msg: JsValue =>
       Logger.debug(s"Message received: $msg")
       
       out ! treat(msg)
-    }
   }
 
   def treat(msg: JsValue): JsValue = {
@@ -178,11 +183,30 @@ class MyWebSocketActor(out: ActorRef) extends Actor {
           }
         ]
         """))
-        
+
         case "new-message" =>
-          //People.insert(User("fredrik","ekholdt"))
+          val cnt = msg \ "content"
+          val participants = (cnt \ "room").as[String]
+          val from = (cnt \ "from").as[Int]
+          val time = (cnt \ "time").as[Date]
+          val typ = if((cnt \ "type").as[String] == "text") 0 else 1
+          val content = (cnt \ "content").as[String]
+
+          DB.withSession{ implicit session =>
+            val room = Room(0, participants)
+            val id = Rooms.insertIfNotExists(room)
+
+            val newMessage = Message(0, id, from, typ, content, time)
+            Messages += newMessage
+          }
+
+          /*
+            val person = Person(0, "Fredrik Ekholdt")
+            People += person
+          */
+
           Json.obj("cmd" -> "message-sent")
-      
+
       case _ => Json.obj("error" -> s"Unknown command '$cmd'")
     }
   }

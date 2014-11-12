@@ -7,7 +7,7 @@ import play.api.Play.current
 case class Person(id: Int, name: String) {}
 
 class People(tag: Tag) extends Table[Person](tag, "people") {
-  def id = column[Int]("id", O.PrimaryKey)
+  def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
   def name = column[String]("name")
   
   def * = (id, name) <> (Person.tupled, Person.unapply)
