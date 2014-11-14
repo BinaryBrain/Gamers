@@ -1,14 +1,15 @@
 package models
 
-import scala.collection.mutable.ArraySeq
-import play.api.libs.json._
+import java.sql.Timestamp
+
 import play.api.db.slick.Config.driver.simple._
 import play.api.Play.current
-import java.sql.Date
+
+import scala.util.Try
 
 case class Room(id: Int, participants: String) {}
-case class Message(id: Int, roomId: Int, senderId: Int, `type`: Int, content: String, date: Date) {}
-case class ChatParticipant(roomId: Int, personId: Int) {}
+case class Message(id: Int, room: Int, from: Int, `type`: Int, content: String, time: Timestamp) {}
+case class ChatParticipant(room: Int, person: Int) {}
 
 class Rooms(tag: Tag) extends Table[Room](tag, "chat_rooms") {
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
@@ -23,15 +24,15 @@ class Messages(tag: Tag) extends Table[Message](tag, "chat_messages") {
 
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
   def roomId = column[Int]("room_id")
-  def senderId = column[Int]("sender_id")
+  def from = column[Int]("sender_id")
   def `type` = column[Int]("type")
   def content = column[String]("content")
-  def date = column[Date]("date")
+  def date = column[Timestamp]("time")
 
-  def * = (id, roomId, senderId, `type`, content, date) <> (Message.tupled, Message.unapply)
+  def * = (id, roomId, from, `type`, content, date) <> (Message.tupled, Message.unapply)
 
   def roomFK = foreignKey("message_room_fk", roomId, rooms)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
-  def senderFK = foreignKey("message_person_fk", senderId, people)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
+  def senderFK = foreignKey("message_person_fk", from, people)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
 }
 
 class ChatParticipants(tag: Tag) extends Table[ChatParticipant](tag, "chat_participants") {
@@ -48,15 +49,24 @@ class ChatParticipants(tag: Tag) extends Table[ChatParticipant](tag, "chat_parti
 }
 
 object Rooms extends TableQuery(new Rooms(_)) {
-  def insertIfNotExists(room: Room)(implicit s: Session): Int = {
-    val exist = Rooms.filter(_.participants === room.participants).exists.run
-    if(!exist) {
+  def !+=(room: Room)(implicit s: Session): Int = {
+    val query = Rooms.filter(_.participants === room.participants)
+    Try {
       Rooms returning Rooms.map(_.id) += room
-    } else {
-      Rooms.filter(_.participants === room.participants).first.id
+    } getOrElse {
+      query.first.id
     }
   }
 }
 
 object Messages extends TableQuery(new Messages(_)) {}
-object ChatParticipants extends TableQuery(new ChatParticipants(_)) {}
+object ChatParticipants extends TableQuery(new ChatParticipants(_)) {
+  def !+=(cp: ChatParticipant)(implicit s: Session) = {
+    val query = ChatParticipants.filter(t => t.roomId === cp.room && t. personId === cp.person)
+    Try {
+      ChatParticipants += cp
+    } getOrElse {
+      query.first
+    }
+  }
+}

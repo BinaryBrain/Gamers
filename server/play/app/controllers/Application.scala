@@ -1,20 +1,17 @@
 package controllers
 
-import java.sql.Date
+import java.sql.{Timestamp, Date}
 
+import org.joda.time.DateTime
 import play.api._
 import play.api.mvc._
 import play.api.libs.json.JsValue
 import akka.actor._
 import play.api.Play.current
-import play.api.libs.json.JsObject
 import play.api.libs.json.Json
-import models._
 import play.api.db.slick.Config.driver.simple._
 
 import models._
-
-import scala.slick.lifted.TableQuery
 
 object Application extends Controller {
   def index = Action {
@@ -46,7 +43,25 @@ class MyWebSocketActor(out: ActorRef) extends Actor {
     
     cmd match {
       case "get-chat" =>
-        Json.obj("cmd" -> "chat-update", "content" -> Json.parse("""
+        DB.withSession { implicit session =>
+
+          val rooms: List[Room] = Rooms.list
+          val chatParticipants: List[ChatParticipant] = ChatParticipants.list
+          val messages: List[Message] = Messages.list
+
+          val content = rooms.map {
+            room => Json.obj(
+              "id" -> room.id,
+              "participants" -> chatParticipants.filter(cp => cp.room == room.id).map(cp => cp.person),
+              "messages" -> messages.filter(m => m.room == room.id)
+              )
+          }
+
+          Json.obj("cmd" -> "chat-update", "content" -> content)
+        }
+
+        /*
+        Json.parse("""
         [
           {
             "id":1,
@@ -142,8 +157,17 @@ class MyWebSocketActor(out: ActorRef) extends Actor {
           }
         ]
         """))
+
+      */
+
       case "get-people" =>
-        Json.obj("cmd" -> "people-update", "content" -> Json.parse("""
+        DB.withSession { implicit session =>
+          val content = People.list.toArray
+
+          Json.obj("cmd" -> "people-update", "content" -> content)
+        }
+
+        /*Json.parse("""
         [
           {
             "id": 1,
@@ -183,27 +207,27 @@ class MyWebSocketActor(out: ActorRef) extends Actor {
           }
         ]
         """))
+        */
 
         case "new-message" =>
           val cnt = msg \ "content"
-          val participants = (cnt \ "room").as[String]
+          val participants = (cnt \ "room").as[Array[Int]]
           val from = (cnt \ "from").as[Int]
-          val time = (cnt \ "time").as[Date]
+          val time = (cnt \ "time").as[Timestamp]
           val typ = if((cnt \ "type").as[String] == "text") 0 else 1
           val content = (cnt \ "content").as[String]
 
           DB.withSession{ implicit session =>
-            val room = Room(0, participants)
-            val id = Rooms.insertIfNotExists(room)
+            val room = Room(0, participants.mkString(","))
+            val id = Rooms !+= (room)
 
             val newMessage = Message(0, id, from, typ, content, time)
             Messages += newMessage
-          }
 
-          /*
-            val person = Person(0, "Fredrik Ekholdt")
-            People += person
-          */
+            participants.foreach {
+              ChatParticipants !+= ChatParticipant(id, _)
+            }
+          }
 
           Json.obj("cmd" -> "message-sent")
 

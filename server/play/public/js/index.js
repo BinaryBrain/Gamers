@@ -21,7 +21,7 @@ App.controller('peopleCtrl', ['$scope', '$rootScope', 'wsFactory', function ($sc
 	}
 
 	$scope.newChat = function (participant) {
-		$rootScope.$broadcast('newChat', [ participant, $rootScope.me ]);
+		$rootScope.$broadcast('newChat', [ participant.id, $rootScope.me.id ]);
 	}
 }]);
 
@@ -50,7 +50,8 @@ App.controller('chatCtrl', function ($scope, $rootScope, $anchorScroll, $timeout
 
 		room.messages.push(newMessage);
 
-		newMessage.room = room.participants.map(function (p) { return p.id }).sort().join(',');
+		//newMessage.room = room.participants.map(function (p) { return p.id }).sort();
+		newMessage.room = room.participants.sort();
 
 		wsFactory.then(function (ws) {
 			ws.send(angular.toJson({ cmd: 'new-message', content: newMessage }));
@@ -80,6 +81,21 @@ App.controller('chatCtrl', function ($scope, $rootScope, $anchorScroll, $timeout
 	wsFactory.then(function (ws) {
 		ws.send('{ "cmd": "get-chat" }');
 	});
+});
+
+App.filter('getPeople', function($rootScope) {
+	return function(ids) {
+		ids = ids.slice(0) || [];
+		var peopleArr = $rootScope.peopleArray || [];
+
+		var people = [];
+
+		for (var i = 0, l = ids.length; i < l; i++) {
+			people.push(peopleArr[ids[i]])
+		}
+
+		return people;
+	};
 });
 
 App.filter('listNames', function() {
@@ -119,11 +135,19 @@ App.factory('wsFactory', function ($q, $rootScope) {
 
 		ws.onmessage = function (event) {
 			var data = angular.fromJson(event.data);
+
+			console.log(data)
 			
 			switch (data.cmd) {
 				case 'people-update':
 					$rootScope.$apply(function () {
-						$rootScope.people = data.content;
+						var cnt = data.content;
+						$rootScope.people = cnt;
+						$rootScope.peopleArray = [];
+
+						for (var i = 0, l = cnt.length; i < l; i++) {
+							$rootScope.peopleArray[cnt[i].id] = cnt[i]
+						}
 					});
 					break;
 

@@ -23,7 +23,7 @@
 	<div id="chat-bar" ng-controller="chatCtrl">
 		<div ng-repeat="room in chat" class="chat">
 			<div class="close" ng-click="close(room)"></div>
-			<div class="header">{{ room.participants | removeMe | listNames }}</div>
+			<div class="header">{{ room.participants | getPeople | removeMe | listNames }}</div>
 			<div class="messages">
 				<div class="message" ng-repeat="m in room.messages" ng-class="{ you: me.id === m.from }">
 					{{ m.content }}

@@ -3,7 +3,7 @@
 
 # --- !Ups
 
-create table `chat_messages` (`id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,`room_id` INTEGER NOT NULL,`sender_id` INTEGER NOT NULL,`type` INTEGER NOT NULL,`content` VARCHAR(254) NOT NULL,`date` DATE NOT NULL);
+create table `chat_messages` (`id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,`room_id` INTEGER NOT NULL,`sender_id` INTEGER NOT NULL,`type` INTEGER NOT NULL,`content` VARCHAR(254) NOT NULL,`time` TIMESTAMP NOT NULL);
 create table `chat_participants` (`room_id` INTEGER NOT NULL,`person_id` INTEGER NOT NULL);
 create table `chat_rooms` (`id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,`participants` VARCHAR(254) NOT NULL);
 create table `people` (`id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,`name` VARCHAR(254) NOT NULL);
