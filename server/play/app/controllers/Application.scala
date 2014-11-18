@@ -50,7 +50,7 @@ class MyWebSocketActor(out: ActorRef) extends Actor {
           case "login" =>
             DB.withSession { implicit session =>
               val token: String = UserSessions.add(me.id)
-              Json.obj("cmd" -> "login-success", "content" -> token)
+              Json.obj("cmd" -> "login-success", "content" -> Json.obj("token" -> token))
             }
 
           case _ => Json.obj("error" -> s"Not logged in or unknown command '$cmd'")
