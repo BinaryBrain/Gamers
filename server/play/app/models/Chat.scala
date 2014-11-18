@@ -19,9 +19,6 @@ class Rooms(tag: Tag) extends Table[Room](tag, "chat_rooms") {
 }
 
 class Messages(tag: Tag) extends Table[Message](tag, "chat_messages") {
-  val rooms = TableQuery[Rooms]
-  val people = TableQuery[People]
-
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
   def roomId = column[Int]("room_id")
   def from = column[Int]("sender_id")
@@ -31,21 +28,18 @@ class Messages(tag: Tag) extends Table[Message](tag, "chat_messages") {
 
   def * = (id, roomId, from, `type`, content, date) <> (Message.tupled, Message.unapply)
 
-  def roomFK = foreignKey("message_room_fk", roomId, rooms)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
-  def senderFK = foreignKey("message_person_fk", from, people)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
+  def roomFK = foreignKey("message_room_fk", roomId, Rooms)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
+  def senderFK = foreignKey("message_person_fk", from, People)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
 }
 
 class ChatParticipants(tag: Tag) extends Table[ChatParticipant](tag, "chat_participants") {
-  val rooms = TableQuery[Rooms]
-  val people = TableQuery[People]
-  
   def roomId = column[Int]("room_id")
   def personId = column[Int]("person_id")
 
   def * = (roomId, personId) <> (ChatParticipant.tupled, ChatParticipant.unapply)
   
-  def roomFK = foreignKey("chatparticipants_room_fk", roomId, rooms)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
-  def personFK = foreignKey("chatparticipants_person_fk", personId, people)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
+  def roomFK = foreignKey("chatparticipant_room_fk", roomId, Rooms)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
+  def personFK = foreignKey("chatparticipant_person_fk", personId, People)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
 }
 
 object Rooms extends TableQuery(new Rooms(_)) {
@@ -59,7 +53,8 @@ object Rooms extends TableQuery(new Rooms(_)) {
   }
 }
 
-object Messages extends TableQuery(new Messages(_)) {}
+object Messages extends TableQuery(new Messages(_))
+
 object ChatParticipants extends TableQuery(new ChatParticipants(_)) {
   def !+=(cp: ChatParticipant)(implicit s: Session) = {
     val query = ChatParticipants.filter(t => t.roomId === cp.room && t. personId === cp.person)
