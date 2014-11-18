@@ -142,6 +142,8 @@ App.factory('wsFactory', function ($q, $rootScope) {
 
 		ws._send = ws.send;
 		ws.send = function (obj) {
+			console.log($rootScope.token);
+
 			if(typeof $rootScope.token !== 'undefined') {
 				obj.auth = $rootScope.token;
 			}
@@ -180,7 +182,7 @@ App.factory('wsFactory', function ($q, $rootScope) {
 				
 				case 'login-success':
 					$rootScope.$apply(function () {
-						$rootScope.token = data.content.token;
+						$rootScope.token = data.content;
 					});
 					break;
 
