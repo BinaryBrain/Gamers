@@ -9,10 +9,19 @@ window.onerror = function (errorMsg, url, lineNumber, columnNumber, errorObject)
 	}
 }
 
-App.controller('peopleCtrl', ['$scope', '$rootScope', 'wsFactory', function ($scope, $rootScope, wsFactory) {
+App.controller('loginCtrl', ['$scope', '$rootScope', 'wsFactory', function ($scope, $rootScope, wsFactory) {
 	wsFactory.then(function (ws) {
-		ws.send('{ "cmd": "get-people" }');
-	});
+		ws.send({ cmd: 'login' });
+	})
+}])
+
+App.controller('peopleCtrl', ['$scope', '$rootScope', 'wsFactory', function ($scope, $rootScope, wsFactory) {
+	// TODO remove setTimeout once the login is done correctly
+	setTimeout(function () {
+		wsFactory.then(function (ws) {
+			ws.send({ cmd: 'get-people' });
+		});
+	}, 1000);
 
 	// dummy data
 	$rootScope.me = {
@@ -54,7 +63,7 @@ App.controller('chatCtrl', function ($scope, $rootScope, $anchorScroll, $timeout
 		newMessage.room = room.participants.sort();
 
 		wsFactory.then(function (ws) {
-			ws.send(angular.toJson({ cmd: 'new-message', content: newMessage }));
+			ws.send({ cmd: 'new-message', content: newMessage });
 		});
 
 		$scope.newMessages[room.id] = "";
@@ -78,9 +87,12 @@ App.controller('chatCtrl', function ($scope, $rootScope, $anchorScroll, $timeout
 		});
 	}, true)
 
-	wsFactory.then(function (ws) {
-		ws.send('{ "cmd": "get-chat" }');
-	});
+	// TODO remove setTimeout once the login is done correctly
+	setTimeout(function () {
+		wsFactory.then(function (ws) {
+			ws.send({ cmd: 'get-chat' });
+		});
+	}, 1000);
 });
 
 App.filter('getPeople', function($rootScope) {
@@ -128,6 +140,17 @@ App.factory('wsFactory', function ($q, $rootScope) {
 	return $q(function (resolve, reject) {
 		var ws = new WebSocket(document.location.origin.replace(/^http/, "ws") + "/ws");
 
+		ws._send = ws.send;
+		ws.send = function (obj) {
+			console.log($rootScope.token);
+
+			if(typeof $rootScope.token !== 'undefined') {
+				obj.auth = $rootScope.token;
+			}
+
+			ws._send(angular.toJson(obj));
+		}
+
 		ws.onopen = function (event) {
 			console.log("WebSocket open");
 			resolve(ws);
@@ -154,6 +177,12 @@ App.factory('wsFactory', function ($q, $rootScope) {
 				case 'chat-update':
 					$rootScope.$apply(function () {
 						$rootScope.chat = data.content;
+					});
+					break;
+				
+				case 'login-success':
+					$rootScope.$apply(function () {
+						$rootScope.token = data.content;
 					});
 					break;
 
