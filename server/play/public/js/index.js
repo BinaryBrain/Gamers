@@ -16,12 +16,11 @@ App.controller('loginCtrl', ['$scope', '$rootScope', 'wsFactory', function ($sco
 }])
 
 App.controller('peopleCtrl', ['$scope', '$rootScope', 'wsFactory', function ($scope, $rootScope, wsFactory) {
-	// TODO remove setTimeout once the login is done correctly
-	setTimeout(function () {
+	$rootScope.$on('logged', function (event) {
 		wsFactory.then(function (ws) {
 			ws.send({ cmd: 'get-people' });
 		});
-	}, 1000);
+	})
 
 	// dummy data
 	$rootScope.me = {
@@ -29,8 +28,8 @@ App.controller('peopleCtrl', ['$scope', '$rootScope', 'wsFactory', function ($sc
 		name: "Binary Brain"
 	}
 
-	$scope.newChat = function (participant) {
-		$rootScope.$broadcast('newChat', [ participant.id, $rootScope.me.id ]);
+	$scope.newChat = function (partener) {
+		$rootScope.$broadcast('newChat', partener.id);
 	}
 }]);
 
@@ -41,12 +40,23 @@ App.controller('chatCtrl', function ($scope, $rootScope, $anchorScroll, $timeout
 		$rootScope.chat = [];
 	}
 
-	$rootScope.$on('newChat', function (event, participants) {
+	$rootScope.$on('logged', function (event) {
+		wsFactory.then(function (ws) {
+			ws.send({ cmd: 'get-chat' });
+		});
+	})
+
+	$rootScope.$on('newChat', function (event, partenerId) {
 		$rootScope.chat.push({
-			id: Math.round(Math.random() * 10000), // TODO real ids without possible collision
-			participants: participants,
+			id: Math.round(Math.random() * 10000), // TODO real ids without possible collision (or id from DB)
+			participants: [partenerId],
 			messages: []
 		})
+	})
+
+	// TODO Implement
+	$rootScope.$on('newChatGroup', function (event, participants) {
+		console.warn("Not implemented!");
 	})
 
 	$scope.sendMessage = function (room, message) {
@@ -59,11 +69,8 @@ App.controller('chatCtrl', function ($scope, $rootScope, $anchorScroll, $timeout
 
 		room.messages.push(newMessage);
 
-		//newMessage.room = room.participants.map(function (p) { return p.id }).sort();
-		newMessage.room = room.participants.sort();
-
 		wsFactory.then(function (ws) {
-			ws.send({ cmd: 'new-message', content: newMessage });
+			ws.send({ cmd: 'new-message', content: { message: newMessage, participants: room.participants } });
 		});
 
 		$scope.newMessages[room.id] = "";
@@ -87,12 +94,6 @@ App.controller('chatCtrl', function ($scope, $rootScope, $anchorScroll, $timeout
 		});
 	}, true)
 
-	// TODO remove setTimeout once the login is done correctly
-	setTimeout(function () {
-		wsFactory.then(function (ws) {
-			ws.send({ cmd: 'get-chat' });
-		});
-	}, 1000);
 });
 
 App.filter('getPeople', function($rootScope) {
@@ -142,8 +143,6 @@ App.factory('wsFactory', function ($q, $rootScope) {
 
 		ws._send = ws.send;
 		ws.send = function (obj) {
-			console.log($rootScope.token);
-
 			if(typeof $rootScope.token !== 'undefined') {
 				obj.auth = $rootScope.token;
 			}
@@ -160,7 +159,7 @@ App.factory('wsFactory', function ($q, $rootScope) {
 			var data = angular.fromJson(event.data);
 
 			console.log(data)
-			
+				
 			switch (data.cmd) {
 				case 'people-update':
 					$rootScope.$apply(function () {
@@ -184,6 +183,9 @@ App.factory('wsFactory', function ($q, $rootScope) {
 					$rootScope.$apply(function () {
 						$rootScope.token = data.content;
 					});
+
+					$rootScope.$broadcast('logged');
+					
 					break;
 
 				default:

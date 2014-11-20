@@ -9,7 +9,7 @@ import scala.util.Try
 
 case class Room(id: Int, participants: String) {}
 case class Message(id: Int, room: Int, from: Int, `type`: Int, content: String, time: Timestamp) {}
-case class ChatParticipant(room: Int, person: Int) {}
+case class RoomParticipant(room: Int, person: Int) {}
 
 class Rooms(tag: Tag) extends Table[Room](tag, "chat_rooms") {
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
@@ -32,36 +32,27 @@ class Messages(tag: Tag) extends Table[Message](tag, "chat_messages") {
   def senderFK = foreignKey("message_person_fk", from, People)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
 }
 
-class ChatParticipants(tag: Tag) extends Table[ChatParticipant](tag, "chat_participants") {
+class RoomParticipants(tag: Tag) extends Table[RoomParticipant](tag, "chat_room_participants") {
   def roomId = column[Int]("room_id")
   def personId = column[Int]("person_id")
 
-  def * = (roomId, personId) <> (ChatParticipant.tupled, ChatParticipant.unapply)
-  
-  def roomFK = foreignKey("chatparticipant_room_fk", roomId, Rooms)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
-  def personFK = foreignKey("chatparticipant_person_fk", personId, People)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
+  def * = (roomId, personId) <> (RoomParticipant.tupled, RoomParticipant.unapply)
+
+  def roomFK = foreignKey("room_participant_room_fk", roomId, Rooms)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
+  def personFK = foreignKey("room_participant_person_fk", personId, People)(_.id, onUpdate=ForeignKeyAction.Cascade, onDelete=ForeignKeyAction.Cascade)
 }
 
-object Rooms extends TableQuery(new Rooms(_)) {
-  def !+=(room: Room)(implicit s: Session): Int = {
-    val query = Rooms.filter(_.participants === room.participants)
-    Try {
-      Rooms returning Rooms.map(_.id) += room
-    } getOrElse {
-      query.first.id
-    }
-  }
-}
+object Rooms extends TableQuery(new Rooms(_))
 
 object Messages extends TableQuery(new Messages(_))
 
-object ChatParticipants extends TableQuery(new ChatParticipants(_)) {
-  def !+=(cp: ChatParticipant)(implicit s: Session) = {
-    val query = ChatParticipants.filter(t => t.roomId === cp.room && t. personId === cp.person)
+object RoomParticipants extends TableQuery(new RoomParticipants(_)) {
+  def !+=(rp: RoomParticipant)(implicit s: Session) = {
+    val query = RoomParticipants.filter(t => t.roomId === rp.room && t. personId === rp.person)
     Try {
-      ChatParticipants += cp
-    } getOrElse {
       query.first
+    } getOrElse {
+      RoomParticipants += rp
     }
   }
 }

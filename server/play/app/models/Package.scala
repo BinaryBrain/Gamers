@@ -22,5 +22,5 @@ package object models {
   implicit val personJsonFormat = Json.format[Person]
   implicit val roomJsonFormat = Json.format[Room]
   implicit val messageJsonFormat = Json.format[Message]
-  implicit val chatParticipantJsonFormat = Json.format[ChatParticipant]
+  implicit val chatParticipantJsonFormat = Json.format[RoomParticipant]
 }

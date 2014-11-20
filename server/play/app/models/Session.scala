@@ -5,7 +5,7 @@ import java.sql.Timestamp
 import java.util.Date
 import models.mysql._
 
-case class UserSession(token: String, userId: Int, created: Timestamp, last_access: Timestamp)
+case class UserSession(token: String, user: Int, created: Timestamp, last_access: Timestamp)
 
 class UserSessions(tag: Tag) extends Table[UserSession](tag, "sessions") {
   def token = column[String]("token", O.PrimaryKey)
@@ -21,7 +21,7 @@ class UserSessions(tag: Tag) extends Table[UserSession](tag, "sessions") {
 object UserSessions extends TableQuery(new UserSessions(_)) {
   def add(userId: Int)(implicit s: Session): String = {
     val random: SecureRandom = new SecureRandom()
-    val bytes = new Array[Byte](20) // TODO settings
+    val bytes = new Array[Byte](32) // TODO put in settings
 
     random.nextBytes(bytes)
 
@@ -31,5 +31,9 @@ object UserSessions extends TableQuery(new UserSessions(_)) {
     UserSessions += UserSession(token, userId, t, t)
 
     token
+  }
+
+  def checkAuth(auth: String)(implicit s: Session): Int = {
+    UserSessions.filter(_.token === auth).map(_.userId).first
   }
 }
