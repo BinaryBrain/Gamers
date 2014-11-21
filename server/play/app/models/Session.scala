@@ -33,7 +33,7 @@ object UserSessions extends TableQuery(new UserSessions(_)) {
     token
   }
 
-  def checkAuth(auth: String)(implicit s: Session): Int = {
+  def checkToken(auth: String)(implicit s: Session): Int = {
     UserSessions.filter(_.token === auth).map(_.userId).first
   }
 }

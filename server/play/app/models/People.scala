@@ -16,6 +16,7 @@ class People(tag: Tag) extends Table[Person](tag, "people") {
 }
 
 object People extends TableQuery(new People(_)) {
+  def checkAuth(email: String, password: String)(implicit s: Session): Option[Int] = {
+    People.filter(p => p.email === email && p.password === password).map(_.id).firstOption
+  }
 }
-
-object me extends Person(42, "Binary Brain", "sacha.bron@copperflake.com", "love")

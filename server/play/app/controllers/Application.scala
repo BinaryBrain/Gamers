@@ -51,18 +51,26 @@ class MyWebSocketActor(out: ActorRef) extends Actor {
 
             // TODO check creditentials
             case "login" =>
-              val token: String = UserSessions.add(me.id)
-              Json.obj("cmd" -> "login-success", "content" -> token)
+              val email = (datagram \ "content" \ "email").as[String]
+              val password = (datagram \ "content" \ "password").as[String]
+
+              People.checkAuth(email, password) match {
+                case Some(id) =>
+                  val token: String = UserSessions.add(id)
+                  Json.obj("cmd" -> "login-success", "content" -> token)
+                case None =>
+                  Json.obj("error" -> "Bad email or password")
+              }
 
             case _ => Json.obj("error" -> s"Not logged in or unknown command '$cmd'")
           }
 
         case Some(auth) =>
-          val id: Int = UserSessions.checkAuth(auth)
+          val id: Int = UserSessions.checkToken(auth)
 
           cmd match {
             case "get-chat" =>
-              val rooms: List[Room] = (Rooms join RoomParticipants.filter(_.personId === me.id) on (_.id === _.roomId)).map(_._1).list
+              val rooms: List[Room] = (Rooms join RoomParticipants.filter(_.personId === id) on (_.id === _.roomId)).map(_._1).list
               val chatParticipants: List[RoomParticipant] = RoomParticipants.list
               val messages: List[Message] = Messages.list
 
@@ -77,7 +85,7 @@ class MyWebSocketActor(out: ActorRef) extends Actor {
               Json.obj("cmd" -> "chat-update", "content" -> content)
 
             case "get-people" =>
-              val content = People.list.toArray
+              val content = People.filter(_.id =!= id).list.toArray
 
               Json.obj("cmd" -> "people-update", "content" -> content)
 
@@ -93,6 +101,10 @@ class MyWebSocketActor(out: ActorRef) extends Actor {
               val participants = withParticipants :+ from
 
               val room = Room(0, participants.sortWith(_ < _).mkString(","))
+
+              if (withParticipants.length == 1 && withParticipants.apply(0) == id) {
+                return Json.obj("error" -> "You cannot send messages to yourself.")
+              }
 
               val roomId = /* if (participants.length == 2) { */
                 Try {
