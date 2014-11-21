@@ -175,7 +175,13 @@ App.factory('wsFactory', function ($q, $rootScope) {
 
 				case 'chat-update':
 					$rootScope.$apply(function () {
-						$rootScope.chat = data.content;
+						for (var i in data.content) {
+							for (var j in data.content[i].messages) {
+								var offset = new Date().getTimezoneOffset();
+								data.content[i].messages[j].time = (new Date(data.content[i].messages[j].time) - new Date(-offset*1000*60))
+							}
+						}
+						$rootScope.chat = data.content
 					});
 					break;
 				
