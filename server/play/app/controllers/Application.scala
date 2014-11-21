@@ -21,22 +21,22 @@ object Application extends Controller {
 
   def ws = WebSocket.acceptWithActor[JsValue, JsValue] { request =>
     out =>
-      MyWebSocketActor.props(out)
+      WebSocketActor.props(out)
   }
 
   def rest = TODO
 }
 
-object MyWebSocketActor {
-  def props(out: ActorRef) = Props(new MyWebSocketActor(out))
+object WebSocketActor {
+  def props(out: ActorRef) = Props(new WebSocketActor(out))
 }
 
-class MyWebSocketActor(out: ActorRef) extends Actor {
+class WebSocketActor(out: ActorRef) extends Actor {
   def receive = {
-    case msg: JsValue =>
-      Logger.debug(s"Message received: $msg")
+    case datagram: JsValue =>
+      Logger.debug(s"Datagram received: $datagram")
 
-      out ! treat(msg)
+      out ! treat(datagram)
   }
 
   def treat(datagram: JsValue): JsValue = {
@@ -113,7 +113,7 @@ class MyWebSocketActor(out: ActorRef) extends Actor {
                 } getOrElse {
                   Rooms returning Rooms.map(_.id) += room
                 }
-              /*
+                /*
                 } else {
                   val roomIdOpt = (cnt \ "new-room").as[Option[Int]]
 
