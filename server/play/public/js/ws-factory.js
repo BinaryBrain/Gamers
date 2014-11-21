@@ -53,7 +53,9 @@ App.factory('wsFactory', function ($q, $rootScope) {
 				
 				case 'login-success':
 					$rootScope.$apply(function () {
-						$rootScope.token = data.content;
+						var cnt = data.content;
+						$rootScope.token = cnt.token;
+						$rootScope.me = cnt.me;
 					});
 
 					$rootScope.$broadcast('logged');

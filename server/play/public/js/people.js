@@ -5,12 +5,6 @@ App.controller('peopleCtrl', ['$scope', '$rootScope', 'wsFactory', function ($sc
 		});
 	})
 
-	// dummy data
-	$rootScope.me = {
-		id: 42,
-		name: "Binary Brain"
-	}
-
 	$scope.newChat = function (partener) {
 		$rootScope.$broadcast('newChat', partener.id);
 	}

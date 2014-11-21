@@ -55,9 +55,9 @@ class MyWebSocketActor(out: ActorRef) extends Actor {
               val password = (datagram \ "content" \ "password").as[String]
 
               People.checkAuth(email, password) match {
-                case Some(id) =>
-                  val token: String = UserSessions.add(id)
-                  Json.obj("cmd" -> "login-success", "content" -> token)
+                case Some(person) =>
+                  val token: String = UserSessions.add(person.id)
+                  Json.obj("cmd" -> "login-success", "content" -> Json.obj("token" -> token, "me" -> person))
                 case None =>
                   Json.obj("error" -> "Bad email or password")
               }
