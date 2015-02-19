@@ -82,6 +82,7 @@ object ChatController {
 
       val newMessage = Message(0, roomId, from, typ, content, time)
 
+      // TODO broadcast is overkill
       EventDispatcher.broadcast(new NewMessageEvent(newMessage))
 
       Messages += newMessage

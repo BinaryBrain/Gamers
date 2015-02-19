@@ -1,7 +1,9 @@
-App.factory('wsFactory', function ($q, $rootScope) {
+App.factory('wsFactory', function ($q, $rootScope, $interval) {
 	return $q(function (resolve, reject) {
 		var ws = new WebSocket(document.location.origin.replace(/^http/, "ws") + "/ws");
-
+		
+		ws.pingTime = new Date();
+		
 		ws._send = ws.send;
 		ws.send = function (obj) {
 			ws._send(angular.toJson(obj));
@@ -23,6 +25,10 @@ App.factory('wsFactory', function ($q, $rootScope) {
 			}
 
 			switch (data.cmd) {
+				case 'pong':
+					$rootScope.ping = new Date() - ws.pingTime;
+					break;
+
 				case 'people-update':
 					$rootScope.$apply(function () {
 						var cnt = data.content;
@@ -74,5 +80,10 @@ App.factory('wsFactory', function ($q, $rootScope) {
 			// TODO handle me!
 			console.error("WebSocket error:", event);
 		}
+
+		$interval(function () {
+			ws.pingTime = new Date();
+			ws.send({ cmd: 'ping' });
+		}, 5000, 0, true);
 	});
 })

@@ -95,6 +95,9 @@ class WebSocketActor(out: ActorRef) extends Actor {
       val cmd = (datagram \ "cmd").as[String]
 
       cmd match {
+        case "ping" =>
+          Json.obj("cmd" -> "pong")
+
         case "get-chat" =>
           ChatController.getChat(id)
 

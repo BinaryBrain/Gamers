@@ -24,6 +24,7 @@
 				<div class="name" ng-click="newChat(p)">{{ p.name }}</div>
 			</li>
 		</ul>
+		<div id="ping">{{ ping }}ms</div>
 	</div>
 	<div id="chat-bar" ng-controller="chatCtrl">
 		<div ng-repeat="room in chat" class="chat">
