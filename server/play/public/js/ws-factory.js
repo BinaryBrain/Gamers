@@ -4,10 +4,6 @@ App.factory('wsFactory', function ($q, $rootScope) {
 
 		ws._send = ws.send;
 		ws.send = function (obj) {
-			if(typeof $rootScope.token !== 'undefined') {
-				obj.auth = $rootScope.token;
-			}
-
 			ws._send(angular.toJson(obj));
 		}
 
@@ -55,7 +51,8 @@ App.factory('wsFactory', function ($q, $rootScope) {
 					$rootScope.$apply(function () {
 						var cnt = data.content;
 						$rootScope.token = cnt.token;
-						$rootScope.me = cnt.me;
+						$rootScope.me = {};
+						$rootScope.me.id = cnt.id;
 					});
 
 					$rootScope.$broadcast('logged');
