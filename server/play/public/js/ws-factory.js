@@ -17,7 +17,9 @@ App.factory('wsFactory', function ($q, $rootScope, $interval) {
 		ws.onmessage = function (event) {
 			var data = angular.fromJson(event.data);
 
-			console.log(data)
+			if(data.cmd !== 'pong') {
+				console.log(data);
+			}
 
 			if (typeof data.error !== 'undefined') {
 				alert(data.error)
