@@ -14,6 +14,7 @@
 		<script src='@routes.Assets.at("js/login.js")'></script>
 		<script src='@routes.Assets.at("js/people.js")'></script>
 		<script src='@routes.Assets.at("js/chat.js")'></script>
+		<script src='@routes.Assets.at("js/games.js")'></script>
 </head>
 <body>
 	<div id="login" ng-controller="loginCtrl"></div>
@@ -37,6 +38,18 @@
 				</div>
 			</div>
 			<form ng-submit="sendMessage(room, newMessages[room.id])"><input type="text "ng-model="newMessages[room.id]"></form>
+		</div>
+	</div>
+	<div id="games" ng-controller="gamesCtrl">
+		<div class="game" ng-repeat="g in games">
+			<h3>{{ g.name }}</h3>
+			<div class="info">
+				<ul>
+					<li>Players: {{ g.players }}</li>
+					<li>{{ g.description }}</li>
+				</ul>
+			</div>
+			<!-- TODO img -->
 		</div>
 	</div>
 </body>

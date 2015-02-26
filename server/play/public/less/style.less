@@ -13,21 +13,16 @@
 @green: #2DC32E;
 @red: #FF2C42;
 
-@frameWidth: 800px;
-@frameHeight: 500px;
 @frameBG: rgba(0, 0, 0, 0.5);
-
-@gameWidth: 320px;
-@gameHeight: 200px;
-@gameInfoBG: rgba(0, 0, 0, 0.85);
 
 @peopleWidth: 200px;
 @notifsWidth: @peopleWidth;
 
-@popoverBG: @lighterGrey;
-@popoverWidth: @frameWidth+100;
+@zChat: 500;
+@zPeople: 400;
+@zGames: 300;
 
-.transition (@type: all, @dur: 0.5s, @trans: ease-in-out, @delay: 0s) {
+.transition (@type: all, @dur: 0.2s, @trans: ease-in-out, @delay: 0s) {
   transition: @type @dur @trans @delay;
   -webkit-transition: @type @dur @trans @delay;
   -moz-transition: @type @dur @trans @delay;
@@ -70,37 +65,29 @@ h1#bigTitle {
   text-align: center;
 }
 
-#frame {
-  position: absolute;
-  
-  width: @frameWidth;
-  height: @frameHeight;
-  
-  left: 50%;
-  top: 50%;
-  
-  margin-left: -@frameWidth/2;
-  margin-top: -@frameHeight/2;
-}
-
-.frameContent {
-  background: @frameBG;
-  width: 100%;
-  height: 100%;
-}
+@gameWidth: 500px;
+@gameHeight: 300px;
+@gameInfoBG: white;
 
 #games {
-  .frameContent;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  right: @peopleWidth;
+  z-index: zGames;
   
   .game {
+    background-color: rgba(200, 0, 50, 0.5); /* FIXME I'm a test */
     position: relative;
     
     width: @gameWidth;
     height: @gameHeight;
-    
-    margin-left: (@frameWidth - @gameWidth*2)/3;
-    margin-top: (@frameHeight - @gameHeight*2)/3;
-    
+
+    // TODO better margins
+    margin-left: 10%;
+    margin-top: 60px;
+
     border: 1px solid black;
     
     float: left;
@@ -160,8 +147,6 @@ h1#bigTitle {
 }
 
 #teamMaking {
-  .frameContent;
-  
   #teams {
     position: absolute;
     top: 10px;
@@ -246,6 +231,8 @@ h1#bigTitle {
   top: 0;
   bottom: 0;
   right: 0;
+
+  z-index: zPeople;
   
   width: @peopleWidth;
   
@@ -259,8 +246,6 @@ h1#bigTitle {
     .whiteTitle;
     
     margin: 10px 0 5px 0;
-    
-    
   }
   
   ul {
@@ -299,9 +284,13 @@ h1#bigTitle {
 
 #chat-bar {
   position: absolute;
+
   bottom: 0;
   height: @chatHeight;
   right: @peopleWidth;
+
+  z-index: @zChat;
+
   overflow: hidden;
 
   .chat {
@@ -403,10 +392,10 @@ h1#bigTitle {
     bottom: 150px;
     left: 50%;
     
-    width: @popoverWidth;
-    margin-left: -@popoverWidth/2;
+    // width: @popoverWidth;
+    // margin-left: -@popoverWidth/2;
     
-    background-color: @popoverBG;
+    // background-color: @popoverBG;
     
     .title {
       width: 100%;
